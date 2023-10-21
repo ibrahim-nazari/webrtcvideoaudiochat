@@ -12,6 +12,28 @@ let connectedUsers = [];
 io.on("connection", (socket) => {
   console.log(" user connected to socket socket.id", socket.id);
   connectedUsers.push(socket.id);
+  socket.on("pre-offer", (data) => {
+    const { callType, calleePersonalCode } = data;
+    const isUserExist = connectedUsers.find(
+      (userId) => userId == calleePersonalCode
+    );
+    if (isUserExist) {
+      const data = { callerSocketId: socket.id, callType };
+      socket.to(calleePersonalCode).emit("pre-offer", data);
+    } else {
+      console.log("user not found");
+    }
+  });
+  socket.on("pre-offer-answer", (data) => {
+    const { callerSocketId, preOfferAnswer } = data;
+    const isUserExist = connectedUsers.find(
+      (userId) => userId == callerSocketId
+    );
+    if (isUserExist) {
+      const ndata = { preOfferAnswer, socketId: socket.id };
+      socket.to(callerSocketId).emit("pre-offer-answer", ndata);
+    }
+  });
   socket.on("disconnect", () => {
     const fConnectedUsers = connectedUsers.filter((id) => id != socket.id);
     connectedUsers = fConnectedUsers;

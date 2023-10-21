@@ -6,21 +6,24 @@
     <title>Meeting</title>
     <link rel="stylesheet" href="./css/style.css" />
   </head>
-  <body>
+  <body class="bg-white">
     <div class="container mx-auto h-[100vh]">
       <div class="flex items-center h-full">
         <!-- left side page -->
         <div
-          class="dashboard flex flex-col justify-evenly p-10 bg-blue-700 h-full flex-1 text-white"
+          class="dashboard flex flex-col justify-evenly p-10 bg-gray-500 h-full w-[400px] text-white"
+          id="dashboard"
         >
           <div class="your-personal-code">
             <div class="text-xl">Copy your personal code</div>
             <div class="my-5 relative">
-              <p class="p-5 text-2xl bg-gray-200 text-gray-500 rounded-md">
-                dkkew9re9934498
-              </p>
+              <p
+                class="p-2 text-xl bg-gray-200 text-gray-500 rounded-md"
+                id="personal_code"
+              ></p>
               <button
                 class="absolute right-0 bottom-0 bg-gray-600 text-white px-3 py-1 rounded-md hover:bg-gray-500"
+                id="copy_personal_code"
               >
                 Copy
               </button>
@@ -30,18 +33,20 @@
           <div class="join-channel">
             <div class="title text-xl text-white">Personal code</div>
             <input
-              name="personal_code"
-              id="personal_code"
-              class="h-10 p-2 outline-none text-gray-500 rounded-sm w-1/2 my-5"
+              name="user_personal_code"
+              id="user_personal_code"
+              class="h-10 p-2 outline-none text-gray-500 rounded-sm w-full my-5"
             />
             <div class="flex items-center w-full">
               <button
                 class="bg-gray-100 text-blue-900 px-3 py-1 rounded-md hover:bg-gray-200 mr-10"
+                id="startChat"
               >
                 Chat
               </button>
               <button
                 class="bg-gray-100 text-yellow-900 px-3 py-1 rounded-md hover:bg-gray-200"
+                id="startVideoCall"
               >
                 Video Call
               </button>
@@ -64,21 +69,178 @@
               </button>
             </div>
             <div class="mt-10 flex items-center">
-              <input type="checkbox" />
-              <span class="text-gray-200">Allow connections from stranger</span>
+              <input type="checkbox" class="cursor-pointer" />
+              <span class="text-gray-200 ml-2"
+                >Allow connections from stranger</span
+              >
             </div>
           </div>
         </div>
         <!-- middle side page -->
-        <div class="dashboard flex flex-col p-5 h-full flex-1"></div>
-        <!-- right side page -->
+        <div class="dashboard p-5 h-full flex-1 bg-blue-900">
+          <div class="relative h-full w-full">
+            <div
+              class="local__video w-40 h-40 rounded-md absolute bottom-4 left-2 bg-white z-10"
+            >
+              <video id="local_video" src="" id="local_video" autoplay></video>
+            </div>
+            <div class="remote__video w-full h-full">
+              <video
+                id="remote_video"
+                src=""
+                id="remote__video"
+                muted
+                autoplay
+              ></video>
+            </div>
+            <div
+              class="buttons_container -z-10 w-full h-20 absolute bottom-0 bg-transparent p-5 flex justify-center items-center"
+              id="call_buttons_container"
+            >
+              <div class="mic mx-3 cursor-pointer" id="mic">
+                <img src="/utils/images/micOff.png" class="w-5 h-5" />
+              </div>
+              <div class="camera mx-3 cursor-pointer" id="camera">
+                <img src="/utils/images/cameraOff.png" class="w-5 h-5" />
+              </div>
+              <div
+                id="button_hangup"
+                class="hangup mx-3 cursor-pointer"
+                id="hangup"
+              >
+                <img src="/utils/images/hangUp.png" class="w-8 h-8" />
+              </div>
+              <div class="sharescreen mx-3 cursor-pointer" id="sharescreen">
+                <img
+                  src="/utils/images/switchCameraScreenSharing.png"
+                  class="w-5 h-5"
+                />
+              </div>
+              <div class="recording mx-3 cursor-pointer" id="recording">
+                <img src="/utils/images/recordingStart.png" class="w-5 h-5" />
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- right side page message content -->
         <div
-          class="dashboard flex flex-col p-5 bg-gray-300 h-full flex-1"
-        ></div>
+          class="dashboard flex flex-col p-5 bg-gray-300 h-full min-w-[400px]"
+        >
+          <div class="message__container flex-1"></div>
+          <div id="form_container" class="flex items-center relative -z-10">
+            <input
+              type="text"
+              id="message"
+              autocomplete="off"
+              class="p-3 rounded-md mr-3 flex-1 outline-none"
+            />
+            <button
+              class="rounded-md px-3 py-2 text-gray-100 bg-blue-700 hover:bg-blue-500 cursor-pointer"
+            >
+              Send
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- dialog section incomming call dialog   -->
+      <div
+        id="incommingCallDialog"
+        class="fixed top-0 left-0 w-full h-full bg-black opacity-80 -z-10 flex justify-center items-center"
+      >
+        <div
+          class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-md w-[400px] h-[400px] p-10 flex flex-col items-center opacity-100 bg-white z-50"
+        >
+          <h2 id="title_incomming_call" class="text-xl text-center my-5">
+            Incomming call
+          </h2>
+          <div>
+            <img
+              src="/utils/images/dialogAvatar.png"
+              class="w-52 h-52"
+              alt=""
+            />
+          </div>
+          <div
+            class="buttons_container flex justify-evenly items-center my-5 w-full"
+          >
+            <button
+              class="bg-green-600 rounded-md px-3 py-1 text-white hover:bg-green-500"
+              id="accept_call"
+            >
+              Accept
+            </button>
+            <button
+              class="bg-red-600 text-white rounded-md px-3 py-1 hover:bg-red-500"
+              id="reject_call"
+            >
+              Reject
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- caller dialog -->
+      <div
+        id="callerCallDialog"
+        class="fixed top-0 left-0 w-full h-full bg-black opacity-80 -z-10 flex justify-center items-center"
+      >
+        <div
+          class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-md w-[400px] h-[400px] p-10 flex flex-col items-center opacity-100 bg-white z-50"
+        >
+          <h2 id="title_caller_call" class="text-xl text-center my-5">
+            calling
+          </h2>
+          <div>
+            <img
+              src="/utils/images/dialogAvatar.png"
+              class="w-52 h-52"
+              alt=""
+            />
+          </div>
+          <div
+            class="buttons_container flex justify-evenly items-center my-5 w-full"
+          >
+            <button
+              class="bg-red-600 text-white rounded-md px-3 py-1 hover:bg-red-500"
+              id="cancel_call"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- info dialog -->
+      <div
+        id="infoDialog"
+        class="fixed top-0 left-0 w-full h-full bg-black opacity-80 -z-10 flex justify-center items-center"
+      >
+        <div
+          class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-md w-[400px] h-[400px] p-10 flex flex-col items-center opacity-100 bg-white z-50"
+        >
+          <h2 id="info_dialog_title" class="text-xl text-center my-5">
+            calling
+          </h2>
+          <div>
+            <img
+              src="/utils/images/dialogAvatar.png"
+              class="w-52 h-52"
+              alt=""
+            />
+          </div>
+          <div
+            class="buttons_container flex justify-evenly items-center my-5 w-full"
+            id="info_dialog_description"
+          ></div>
+        </div>
       </div>
     </div>
-
     <script src="./socket.io/socket.io.js" type="module"></script>
+    <script src="./js/elements.js" type="module"></script>
+    <script src="./js/constant.js" type="module"></script>
+    <script src="./js/ui.js" type="module"></script>
+    <script src="./js/wss.js" type="module"></script>
+    <script src="./js/store.js" type="module"></script>
+    <script src="./js/webRTCHandler.js" type="module"></script>
     <script src="./js/main.js" type="module"></script>
   </body>
 </html>
