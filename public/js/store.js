@@ -31,6 +31,17 @@ export const setAllowConnectionsFromStranger = (
 export const setCallState = (callState) => {
   state = { ...state, callState };
 };
+export const resetState = () => {
+  state = {
+    ...state,
+    localStream: null,
+    remoteStream: null,
+    screenSharingStream: null,
+    allowConnectionsFromStranger: false,
+    screenSharingActive: false,
+    callState: null,
+  };
+};
 export const getState = () => {
   return state;
 };

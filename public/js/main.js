@@ -5,7 +5,6 @@ import * as webRTCHander from "./webRTCHandler.js";
 import * as constant from "./constant.js";
 const socket = io("/");
 wss.registerSocket(socket);
-webRTCHander.getLocalVideoPreview();
 //register event
 
 ui.getId("copy_personal_code").addEventListener("click", () => {
@@ -25,7 +24,6 @@ ui.getId("startChat").addEventListener("click", () => {
 
 //start video call
 ui.getId("startVideoCall").addEventListener("click", () => {
-  console.log("start vdieo call");
   const user_personal_code = ui.getId("user_personal_code").value;
   const callType = constant.callType.VIDEO_PERSONAL_CODE;
   webRTCHander.sendPreOffer(callType, user_personal_code);

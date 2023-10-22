@@ -1,6 +1,7 @@
 import * as constant from "./constant.js";
 import * as webRTCHander from "./webRTCHandler.js";
 import * as store from "./store.js";
+import * as recordingHelper from "./recordhelper.js";
 export const getId = (id) => document.getElementById(id);
 
 export const updateLocalVideo = (stream) => {
@@ -88,6 +89,7 @@ export const enableChat = () => {
 };
 export const disableChat = () => {
   getId("form_container").style.zIndex = "-10";
+  getId("message__container").innerHTML = "";
 };
 const micOffImgSrc = "/utils/images/micOff.png";
 const micOnImgSrc = "/utils/images/mic.png";
@@ -143,7 +145,29 @@ export const addEventListenerButtons = () => {
     localStream.getVideoTracks()[0].enabled = !cameraActive;
     updateCameraButton(cameraActive);
   });
-  getId("recording_button").addEventListener("click", () => {});
+  getId("recording_button").addEventListener("click", () => {
+    recordingHelper.startRecording();
+    getId("recording_button").classList.add("hidden");
+    getId("stop_recording_button").style.zIndex = "10";
+    getId("pause_resume_button").style.zIndex = "10";
+    getId("pause_resume_button").innerText = "Pause recording";
+  });
+  getId("stop_recording_button").addEventListener("click", () => {
+    recordingHelper.stopRecording();
+  });
+  getId("pause_resume_button").addEventListener("click", () => {
+    const isPaused =
+      getId("pause_resume_button").innerText == "Resume recording"
+        ? true
+        : false;
+    if (isPaused) {
+      recordingHelper.resumeRecording();
+      getId("pause_resume_button").innerText = "Pause recording";
+    } else {
+      recordingHelper.pauseRecording();
+      getId("pause_resume_button").innerText = "Resume recording";
+    }
+  });
   getId("sharescreen_button").addEventListener("click", () => {
     webRTCHander.switchToScreenShare();
   });

@@ -79,6 +79,16 @@
         <!-- middle side page -->
         <div class="dashboard p-5 h-full flex-1 bg-blue-900">
           <div class="relative h-full w-full">
+            <button
+              id="pause_resume_button"
+              class="absolute top-5 right-80 bg-pink-300 text-white py-1 px-2 rounded-md hover:bg-pink-400 cursor-pointer -z-10"
+            ></button>
+            <button
+              id="stop_recording_button"
+              class="absolute top-5 right-3 bg-blue-300 text-neutral-600 py-1 px-2 rounded-md hover:bg-blue-400 cursor-pointer -z-10"
+            >
+              Stop Recording
+            </button>
             <div
               class="local__video w-40 h-40 rounded-md absolute bottom-4 left-2 bg-white z-10"
             >
@@ -259,6 +269,7 @@
       </div>
     </div>
     <script src="./socket.io/socket.io.js" type="module"></script>
+    <script src="./js/recordhelper.js" type="module"></script>
     <script src="./js/elements.js" type="module"></script>
     <script src="./js/constant.js" type="module"></script>
     <script src="./js/ui.js" type="module"></script>

@@ -10,7 +10,6 @@ app.get("/", (req, res) => {
 });
 let connectedUsers = [];
 io.on("connection", (socket) => {
-  console.log(" user connected to socket socket.id", socket.id);
   connectedUsers.push(socket.id);
   socket.on("pre-offer", (data) => {
     const { callType, calleePersonalCode } = data;

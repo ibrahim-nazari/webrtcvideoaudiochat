@@ -2,6 +2,7 @@ import * as wss from "./wss.js";
 import * as constant from "./constant.js";
 import * as ui from "./ui.js";
 import * as store from "./store.js";
+import * as recordingHelper from "./recordhelper.js";
 let connectedUserDetails;
 let dataChannel;
 const defaultConstrain = {
@@ -16,12 +17,17 @@ const configuration = {
   ],
 };
 let peerConnection;
+let started = false;
 export const getLocalVideoPreview = () => {
+  if (started) return;
+  started = false;
   navigator.mediaDevices
     .getUserMedia(defaultConstrain)
     .then((stream) => {
       ui.updateLocalVideo(stream);
       store.setLocalStream(stream);
+      createPeerConnection();
+      sendWebRTCOffer();
     })
     .catch((error) => {
       console.log("error", error);
@@ -30,23 +36,17 @@ export const getLocalVideoPreview = () => {
 export const createPeerConnection = () => {
   peerConnection = new RTCPeerConnection(configuration);
   dataChannel = peerConnection.createDataChannel("chat");
-
   peerConnection.ondatachannel = (event) => {
     const dataChannel = event.channel;
-    dataChannel.onopen = () => {
-      console.log("peer connection is ready to recieve message");
-    };
+    dataChannel.onopen = () => {};
     dataChannel.onmessage = (event) => {
       const message = JSON.parse(event.data);
-      console.log("message ----", message);
       ui.appendMessage(message, true);
     };
   };
   peerConnection.onicecandidate = (event) => {
-    console.log("getting ice candiate ");
     if (event.candidate) {
       //send our ice candidate to other user
-      console.log("send ice candidate", event.candidate);
       wss.sendDataUsingWebRTCSignaling({
         connectedUserSocketId: connectedUserDetails.socketId,
         type: constant.webRTCsignaling.ICE_CANDIATE,
@@ -81,6 +81,9 @@ export const sendPreOffer = (callType, calleePersonalCode) => {
     socketId: calleePersonalCode,
     callType,
   };
+  if (callType == constant.callType.VIDEO_PERSONAL_CODE) {
+    getLocalVideoPreview();
+  }
 
   if (
     callType == constant.callType.CHAT_PERSOAN_CODE ||
@@ -106,7 +109,6 @@ export const handlePreOffer = (data) => {
 };
 export const handlePreOfferAnswer = (data) => {
   const { preOfferAnswer } = data;
-  console.log("webrtc pre-offer anser", data);
   ui.removeDialog();
   if (preOfferAnswer == constant.preOfferAnswer.CALLEE_NOT_FOUND) {
     // show dialog that callee has not found
@@ -127,20 +129,13 @@ export const handlePreOfferAnswer = (data) => {
   if (preOfferAnswer == constant.preOfferAnswer.CALL_ENDED) {
     // show dialog that callee reject call
     ui.showInfoDialog(preOfferAnswer);
-    ui.disableChat();
-    ui.enableDashboard();
-    ui.hideCallButtons();
-    peerConnection.close();
-    store.setLocalStream(null);
-    store.setRemoteStream(null);
+    clearCall();
   }
   if (preOfferAnswer == constant.preOfferAnswer.CALL_ACCEPTED) {
     //call accepted here
     ui.enableChat();
     ui.disableDashboard();
     ui.showCallButtons();
-    createPeerConnection();
-    sendWebRTCOffer();
   }
 };
 
@@ -234,27 +229,51 @@ export const sendMessageUsingDataChannel = (message) => {
   ui.appendMessage(message, false);
 };
 export const acceptCallHandler = () => {
-  createPeerConnection();
+  getLocalVideoPreview();
   sendPreOfferAnswer(constant.preOfferAnswer.CALL_ACCEPTED);
   ui.disableDashboard();
   ui.showCallButtons();
   ui.enableChat();
 };
 export const rejectCallHandler = () => {
-  console.log("call rejected");
   sendPreOfferAnswer(constant.preOfferAnswer.CALL_REJECTED);
 };
 
 export const cancelCallHandler = () => {
-  console.log("cancel call");
   sendPreOfferAnswer(constant.preOfferAnswer.CALL_CANCELLED);
 };
 export const callEnded = () => {
   sendPreOfferAnswer(constant.preOfferAnswer.CALL_ENDED);
-  peerConnection.close();
-  store.setLocalStream(null);
-  store.setRemoteStream(null);
+  clearCall();
+};
+const clearCall = () => {
+  console.log("clearcall fired");
+  if (store.getState().screenSharingStream) {
+    store
+      .getState()
+      .screenSharingStream.getTracks()
+      .forEach((track) => track.stop());
+  }
+  if (store.getState().localStream) {
+    store
+      .getState()
+      .localStream.getTracks()
+      .forEach((track) => track.stop());
+  }
+  if (store.getState().remoteStream) {
+    store
+      .getState()
+      .remoteStream.getTracks()
+      .forEach((track) => track.stop());
+  }
   ui.disableChat();
   ui.enableDashboard();
   ui.hideCallButtons();
+  peerConnection.close();
+  recordingHelper.stopRecording();
+  connectedUserDetails = null;
+  setTimeout(() => {
+    // store.resetState();
+    started = false;
+  }, 3000);
 };
