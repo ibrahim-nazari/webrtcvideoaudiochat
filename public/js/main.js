@@ -5,7 +5,7 @@ import * as webRTCHander from "./webRTCHandler.js";
 import * as constant from "./constant.js";
 const socket = io("/");
 wss.registerSocket(socket);
-
+webRTCHander.getLocalVideoPreview();
 //register event
 
 ui.getId("copy_personal_code").addEventListener("click", () => {

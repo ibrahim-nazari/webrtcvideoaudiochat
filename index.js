@@ -34,6 +34,15 @@ io.on("connection", (socket) => {
       socket.to(callerSocketId).emit("pre-offer-answer", ndata);
     }
   });
+  socket.on("webRTC-signaling", (data) => {
+    const { connectedUserSocketId } = data;
+    const isUserExist = connectedUsers.find(
+      (userId) => userId == connectedUserSocketId
+    );
+    if (isUserExist) {
+      socket.to(connectedUserSocketId).emit("webRTC-signaling", data);
+    }
+  });
   socket.on("disconnect", () => {
     const fConnectedUsers = connectedUsers.filter((id) => id != socket.id);
     connectedUsers = fConnectedUsers;

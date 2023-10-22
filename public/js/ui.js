@@ -1,6 +1,14 @@
 import * as constant from "./constant.js";
 import * as webRTCHander from "./webRTCHandler.js";
+import * as store from "./store.js";
 export const getId = (id) => document.getElementById(id);
+
+export const updateLocalVideo = (stream) => {
+  getId("local_video").srcObject = stream;
+};
+export const updateRemoteStream = (stream) => {
+  getId("remote_video").srcObject = stream;
+};
 export const updatePersonalCode = (personalCode) => {
   getId("personal_code").innerHTML = personalCode;
 };
@@ -68,7 +76,6 @@ export const disableDashboard = () => {
   getId("dashboard").style.padding = "0";
 };
 export const showCallButtons = () => {
-  console.log("show call buttons");
   getId("call_buttons_container").style.zIndex = "10";
 };
 
@@ -81,6 +88,25 @@ export const enableChat = () => {
 };
 export const disableChat = () => {
   getId("form_container").style.zIndex = "-10";
+};
+const micOffImgSrc = "/utils/images/micOff.png";
+const micOnImgSrc = "/utils/images/mic.png";
+export const updateMicButton = (micActive) => {
+  getId("mic_button_img").src = micActive ? micOffImgSrc : micOnImgSrc;
+};
+const cameraOffIcon = "/utils/images/cameraOff.png";
+const cameraOnIcon = "/utils/images/camera.png";
+export const updateCameraButton = (videActive) => {
+  getId("camera_button_img").src = videActive ? cameraOffIcon : cameraOnIcon;
+};
+
+export const appendMessage = (message, left) => {
+  const div = document.createElement("div");
+  div.className = left
+    ? "bg-gray-500 p-2 px-3 rounded-md text-start  mr-auto w-fit my-1"
+    : "bg-blue-600 p-2 px-3 rounded-md text-end w-fit  ml-auto my-1";
+  div.innerText = message;
+  getId("message__container").appendChild(div);
 };
 export const addEventListenerButtons = () => {
   //register event listener for button
@@ -98,5 +124,43 @@ export const addEventListenerButtons = () => {
   });
   getId("button_hangup").addEventListener("click", () => {
     webRTCHander.callEnded();
+  });
+  getId("local_video").addEventListener("loadedmetadata", () => {
+    getId("local_video").play();
+  });
+  getId("remote_video").addEventListener("loadedmetadata", () => {
+    getId("remote_video").play();
+  });
+  getId("mic_button").addEventListener("click", () => {
+    const localStream = store.getState().localStream;
+    const audioActive = localStream.getAudioTracks()[0].enabled;
+    localStream.getAudioTracks()[0].enabled = !audioActive;
+    updateMicButton(audioActive);
+  });
+  getId("camera_button").addEventListener("click", () => {
+    const localStream = store.getState().localStream;
+    const cameraActive = localStream.getVideoTracks()[0].enabled;
+    localStream.getVideoTracks()[0].enabled = !cameraActive;
+    updateCameraButton(cameraActive);
+  });
+  getId("recording_button").addEventListener("click", () => {});
+  getId("sharescreen_button").addEventListener("click", () => {
+    webRTCHander.switchToScreenShare();
+  });
+  getId("send_message_button").addEventListener("click", (e) => {
+    e.preventDefault();
+    const message = getId("message").value;
+    webRTCHander.sendMessageUsingDataChannel(message);
+    getId("message").value = "";
+  });
+  getId("message").addEventListener("keydown", (e) => {
+    if (e.key == "Enter") {
+      console.log("entered");
+      webRTCHander.sendMessageUsingDataChannel(e.target.value);
+      getId("message").value = "";
+    }
+  });
+  getId("sharescreen_button").addEventListener("click", () => {
+    webRTCHander.switchToScreenShare();
   });
 };

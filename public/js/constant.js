@@ -13,3 +13,9 @@ export const preOfferAnswer = {
   CALL_CANCELLED: "CALL_CANCELLED",
   CALL_ENDED: "CALL_ENDED",
 };
+
+export const webRTCsignaling = {
+  OFFER: "OFFER",
+  ANSWER: "ANSWER",
+  ICE_CANDIATE: "ICE_CANDIDATE",
+};
