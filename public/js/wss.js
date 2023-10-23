@@ -32,11 +32,25 @@ export const registerSocket = (socket) => {
           return;
       }
     });
+    socketIo.on("request-find-stranger", (id) => {
+      if (id) {
+        const callType = store.getState().callType;
+        webRTCHandler.getLocalVideoPreview(callType, id);
+      } else {
+        ui.showInfoDialog(constant.preOfferAnswer.NO_STRANGER_FOUND);
+      }
+    });
+    socketIo.on("user-not-found", (id) => {
+      ui.showInfoDialog(constant.preOfferAnswer.CALLEE_NOT_FOUND);
+    });
   });
 };
 
 export const sendPreOffer = (data) => {
   socketIo.emit("pre-offer", data);
+};
+export const requestFindStranger = () => {
+  socketIo.emit("request-find-stranger");
 };
 
 export const sendPreOfferAnswer = (data) => {
@@ -45,4 +59,8 @@ export const sendPreOfferAnswer = (data) => {
 
 export const sendDataUsingWebRTCSignaling = (data) => {
   socketIo.emit("webRTC-signaling", data);
+};
+
+export const sendDataOpenToTalkWithStranger = (status) => {
+  socketIo.emit("open-totalkwith-stranger", status);
 };

@@ -1,3 +1,5 @@
+import * as constant from "./constant.js";
+
 let state = {
   socketId: null,
   localStream: null,
@@ -5,7 +7,9 @@ let state = {
   screenSharingStream: null,
   allowConnectionsFromStranger: false,
   screenSharingActive: false,
-  callState: null,
+  callState: constant.callState.AVAILABLE,
+  openToTalkWidthStranger: false,
+  callType: null,
 };
 
 export const setSocketId = (socketId) => {
@@ -30,6 +34,12 @@ export const setAllowConnectionsFromStranger = (
 };
 export const setCallState = (callState) => {
   state = { ...state, callState };
+};
+export const setOpenToTakWithStranger = (status) => {
+  state = { ...state, openToTalkWidthStranger: status };
+};
+export const setCallType = (type) => {
+  state = { ...state, callType: type };
 };
 export const resetState = () => {
   state = {

@@ -2,6 +2,7 @@ import * as constant from "./constant.js";
 import * as webRTCHander from "./webRTCHandler.js";
 import * as store from "./store.js";
 import * as recordingHelper from "./recordhelper.js";
+import * as wss from "./wss.js";
 export const getId = (id) => document.getElementById(id);
 
 export const updateLocalVideo = (stream) => {
@@ -59,6 +60,11 @@ export const showInfoDialog = (preOfferAnswer) => {
     callInfo = {
       title: "User left the call",
       description: "call ended",
+    };
+  } else if (preOfferAnswer == constant.preOfferAnswer.NO_STRANGER_FOUND) {
+    callInfo = {
+      title: "No one found",
+      description: "Try again latter",
     };
   }
 
@@ -186,5 +192,39 @@ export const addEventListenerButtons = () => {
   });
   getId("sharescreen_button").addEventListener("click", () => {
     webRTCHander.switchToScreenShare();
+  });
+  getId("allow_stranger_button").addEventListener("change", (e) => {
+    console.log(e.target.checked);
+    store.setOpenToTakWithStranger(e.target.checked);
+    wss.sendDataOpenToTalkWithStranger(e.target.checked);
+  });
+  getId("chat_stranger_button").addEventListener("click", (e) => {
+    const callType = constant.callType.CHAT_PERSOAN_CODE;
+    store.setCallType(callType);
+    wss.requestFindStranger();
+  });
+  getId("video_stranger_button").addEventListener("click", (e) => {
+    const callType = constant.callType.VIDEO_PERSONAL_CODE;
+    store.setCallType(callType);
+    wss.requestFindStranger();
+  });
+  //start chat
+  getId("startChat").addEventListener("click", () => {
+    console.log("start chat");
+    const callType = constant.callType.CHAT_PERSOAN_CODE;
+    const user_personal_code = getId("user_personal_code").value;
+    webRTCHander.sendPreOffer(callType, user_personal_code);
+  });
+
+  //start video call
+  getId("startVideoCall").addEventListener("click", () => {
+    const user_personal_code = getId("user_personal_code").value;
+    const callType = constant.callType.VIDEO_PERSONAL_CODE;
+    webRTCHander.getLocalVideoPreview(callType, user_personal_code);
+  });
+
+  getId("copy_personal_code").addEventListener("click", () => {
+    const personalCode = store.getState().socketId;
+    navigator.clipboard && navigator.clipboard.writeText(personalCode);
   });
 };

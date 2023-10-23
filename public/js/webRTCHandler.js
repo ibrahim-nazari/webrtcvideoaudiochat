@@ -18,7 +18,7 @@ const configuration = {
 };
 let peerConnection;
 let started = false;
-export const getLocalVideoPreview = () => {
+export const getLocalVideoPreview = (callType = null, id = null) => {
   if (started) return;
   started = false;
   navigator.mediaDevices
@@ -26,6 +26,7 @@ export const getLocalVideoPreview = () => {
     .then((stream) => {
       ui.updateLocalVideo(stream);
       store.setLocalStream(stream);
+      callType && sendPreOffer(callType, id);
       createPeerConnection();
       sendWebRTCOffer();
     })
@@ -75,27 +76,28 @@ export const createPeerConnection = () => {
   }
 };
 export const sendPreOffer = (callType, calleePersonalCode) => {
-  const data = { callType, calleePersonalCode };
-
   connectedUserDetails = {
     socketId: calleePersonalCode,
     callType,
   };
+  let data = { callType, calleePersonalCode };
   if (callType == constant.callType.VIDEO_PERSONAL_CODE) {
-    getLocalVideoPreview();
   }
 
-  if (
-    callType == constant.callType.CHAT_PERSOAN_CODE ||
-    callType == constant.callType.VIDEO_PERSONAL_CODE
-  ) {
-    ui.showDialogForCaller(callType);
-    wss.sendPreOffer(data);
-  }
+  ui.showDialogForCaller(callType);
+  wss.sendPreOffer(data);
+  store.setCallState(constant.callState.UNAVAILABLE);
 };
 
 export const handlePreOffer = (data) => {
   const { callType, callerSocketId } = data;
+  const callState = store.getState().callState;
+  if (callState == constant.callState.UNAVAILABLE) {
+    return sendPreOfferAnswer(
+      constant.preOfferAnswer.CALL_UNAVAILABLE,
+      callerSocketId
+    );
+  }
   connectedUserDetails = {
     socketId: callerSocketId,
     callType,
@@ -106,25 +108,31 @@ export const handlePreOffer = (data) => {
   ) {
     ui.showIncommingCallDialog(callType);
   }
+  store.setCallState(constant.callState.UNAVAILABLE);
 };
+
 export const handlePreOfferAnswer = (data) => {
   const { preOfferAnswer } = data;
   ui.removeDialog();
   if (preOfferAnswer == constant.preOfferAnswer.CALLEE_NOT_FOUND) {
     // show dialog that callee has not found
     ui.showInfoDialog(preOfferAnswer);
+    clearCall();
   }
   if (preOfferAnswer == constant.preOfferAnswer.CALL_UNAVAILABLE) {
     // show dialog that callee is not available
     ui.showInfoDialog(preOfferAnswer);
+    clearCall();
   }
   if (preOfferAnswer == constant.preOfferAnswer.CALL_REJECTED) {
     // show dialog that callee reject call
     ui.showInfoDialog(preOfferAnswer);
+    clearCall();
   }
   if (preOfferAnswer == constant.preOfferAnswer.CALL_CANCELLED) {
     // show dialog that callee reject call
     ui.showInfoDialog(preOfferAnswer);
+    clearCall();
   }
   if (preOfferAnswer == constant.preOfferAnswer.CALL_ENDED) {
     // show dialog that callee reject call
@@ -139,9 +147,9 @@ export const handlePreOfferAnswer = (data) => {
   }
 };
 
-const sendPreOfferAnswer = (preOfferAnswer) => {
+const sendPreOfferAnswer = (preOfferAnswer, socketId = null) => {
   const data = {
-    callerSocketId: connectedUserDetails.socketId,
+    callerSocketId: socketId || connectedUserDetails.socketId,
     preOfferAnswer,
   };
   ui.removeDialog();
@@ -269,9 +277,10 @@ const clearCall = () => {
   ui.disableChat();
   ui.enableDashboard();
   ui.hideCallButtons();
-  peerConnection.close();
+  peerConnection && peerConnection.close();
   recordingHelper.stopRecording();
   connectedUserDetails = null;
+  store.setCallState(constant.callState.AVAILABLE);
   setTimeout(() => {
     // store.resetState();
     started = false;
